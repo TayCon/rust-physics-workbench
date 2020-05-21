@@ -12,8 +12,8 @@ use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::math::{Force, ForceType, Velocity};
 use nphysics2d::object::{
-    Body, BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet, Ground,
-    RigidBodyDesc,
+    Body, BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet,
+    Ground, RigidBodyDesc,
 };
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 
@@ -43,8 +43,8 @@ impl Direction {
         match key {
             KeyCode::Up => Some(Direction::Up),
             KeyCode::Left => Some(Direction::Left),
-            KeyCode::Right => Some (Direction::Right),
-            _ => None
+            KeyCode::Right => Some(Direction::Right),
+            _ => None,
         }
     }
 }
@@ -168,18 +168,24 @@ impl EventHandler for MyGame {
         graphics::present(ctx)
     }
 
-    fn key_down_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymods: KeyMods, _repeat: bool) {
+    fn key_down_event(
+        &mut self,
+        _ctx: &mut Context,
+        keycode: KeyCode,
+        _keymods: KeyMods,
+        _repeat: bool,
+    ) {
         let impulse: f32 = 100000.0;
         if let Some(dir) = Direction::from_keycode(keycode) {
             let ball_body = self
-            .physics
-            .bodies
-            .rigid_body_mut(self.ball)
-            .expect("Ball not found");
+                .physics
+                .bodies
+                .rigid_body_mut(self.ball)
+                .expect("Ball not found");
             let force_dir = match dir {
                 Direction::Up => Vector2::new(0.0, -impulse),
                 Direction::Left => Vector2::new(-impulse, 0.0),
-                Direction::Right => Vector2::new(impulse, 0.0)
+                Direction::Right => Vector2::new(impulse, 0.0),
             };
             let force = Force::new(force_dir, 0.0);
             ball_body.apply_force(0, &force, ForceType::Force, true);
