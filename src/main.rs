@@ -1,6 +1,6 @@
 // ggez imports
 
-use ggez::event::{self, EventHandler};
+use ggez::event::{self, EventHandler, KeyCode, KeyMods};
 use ggez::nalgebra as na;
 use ggez::{graphics, Context, ContextBuilder, GameResult};
 
@@ -10,9 +10,9 @@ use nalgebra::Vector2;
 use ncollide2d::shape::{Ball, Cuboid, ShapeHandle};
 use nphysics2d::force_generator::DefaultForceGeneratorSet;
 use nphysics2d::joint::DefaultJointConstraintSet;
-use nphysics2d::math::Velocity;
+use nphysics2d::math::{Force, ForceType, Velocity};
 use nphysics2d::object::{
-    BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet, Ground,
+    Body, BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet, Ground,
     RigidBodyDesc,
 };
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
@@ -30,7 +30,24 @@ const BALL_RAD: f32 = 20.0;
 const WIN_WIDTH: f32 = 800.0;
 const WIN_HEIGHT: f32 = 600.0;
 
-// Structures
+// Structures & enums
+
+enum Direction {
+    Up,
+    Left,
+    Right,
+}
+
+impl Direction {
+    pub fn from_keycode(key: KeyCode) -> Option<Direction> {
+        match key {
+            KeyCode::Up => Some(Direction::Up),
+            KeyCode::Left => Some(Direction::Left),
+            KeyCode::Right => Some (Direction::Right),
+            _ => None
+        }
+    }
+}
 
 struct PhysicsStruct {
     mechanical_world: DefaultMechanicalWorld<f32>,
@@ -62,13 +79,13 @@ impl MyGame {
         let ball_shape = ShapeHandle::new(Ball::new(BALL_RAD));
         let rigid_body = RigidBodyDesc::new()
             .translation(Vector2::new(300.0, 300.0))
-            .velocity(Velocity::linear(300.0, -200.0))
+            // .velocity(Velocity::linear(300.0, -200.0))
             .linear_damping(0.1)
             .build();
 
         let ball = bodies.insert(rigid_body);
         let co = ColliderDesc::new(ball_shape.clone())
-            .density(1.0)
+            .density(0.005)
             .build(BodyPartHandle(ball, 0));
         colliders.insert(co);
 
@@ -149,6 +166,24 @@ impl EventHandler for MyGame {
         graphics::draw(ctx, &circle, (na::Point2::new(0.0, 0.0),))?;
 
         graphics::present(ctx)
+    }
+
+    fn key_down_event(&mut self, _ctx: &mut Context, keycode: KeyCode, _keymods: KeyMods, _repeat: bool) {
+        let impulse: f32 = 100000.0;
+        if let Some(dir) = Direction::from_keycode(keycode) {
+            let ball_body = self
+            .physics
+            .bodies
+            .rigid_body_mut(self.ball)
+            .expect("Ball not found");
+            let force_dir = match dir {
+                Direction::Up => Vector2::new(0.0, -impulse),
+                Direction::Left => Vector2::new(-impulse, 0.0),
+                Direction::Right => Vector2::new(impulse, 0.0)
+            };
+            let force = Force::new(force_dir, 0.0);
+            ball_body.apply_force(0, &force, ForceType::Force, true);
+        }
     }
 }
 
