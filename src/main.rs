@@ -35,7 +35,7 @@ struct MyGame {
 impl MyGame {
     pub fn new(_ctx: &mut Context) -> MyGame {
         // Load/create resources such as images here.
-        let mechanical_world = DefaultMechanicalWorld::new(Vector2::new(0.0, 9.81 * 4.0));
+        let mechanical_world = DefaultMechanicalWorld::new(Vector2::new(0.0, 300.0));
         let geometrical_world = DefaultGeometricalWorld::new();
         let mut bodies = DefaultBodySet::new();
         let colliders = DefaultColliderSet::new();
@@ -44,7 +44,7 @@ impl MyGame {
 
         let rigid_body = RigidBodyDesc::new()
             .translation(Vector2::new(300.0, 300.0))
-            .velocity(Velocity::linear(20.0, -100.0))
+            .velocity(Velocity::linear(90.0, -200.0))
             .mass(50.0)
             .build();
 
