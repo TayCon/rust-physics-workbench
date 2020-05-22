@@ -13,7 +13,7 @@ use nphysics2d::joint::DefaultJointConstraintSet;
 use nphysics2d::math::{Force, ForceType, Velocity};
 use nphysics2d::object::{
     Body, BodyPartHandle, ColliderDesc, DefaultBodyHandle, DefaultBodySet, DefaultColliderSet,
-    Ground, RigidBodyDesc,
+    Ground, RigidBody, RigidBodyDesc,
 };
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 
@@ -26,24 +26,33 @@ const BLUE: graphics::Color = graphics::Color {
     a: 1.0,
 };
 
+const GREEN: graphics::Color = graphics::Color {
+    r: 0.01,
+    g: 0.98,
+    b: 0.43,
+    a: 1.0,
+};
+
 const BALL_RAD: f32 = 20.0;
 const WIN_WIDTH: f32 = 800.0;
 const WIN_HEIGHT: f32 = 600.0;
 
 // Structures & enums
 
-enum Direction {
+enum Action {
     Up,
     Left,
     Right,
+    Hover,
 }
 
-impl Direction {
-    pub fn from_keycode(key: KeyCode) -> Option<Direction> {
+impl Action {
+    pub fn from_keycode(key: KeyCode) -> Option<Action> {
         match key {
-            KeyCode::Up => Some(Direction::Up),
-            KeyCode::Left => Some(Direction::Left),
-            KeyCode::Right => Some(Direction::Right),
+            KeyCode::Up => Some(Action::Up),
+            KeyCode::Left => Some(Action::Left),
+            KeyCode::Right => Some(Action::Right),
+            KeyCode::C => Some(Action::Hover),
             _ => None,
         }
     }
@@ -61,6 +70,7 @@ struct PhysicsStruct {
 struct MyGame {
     physics: PhysicsStruct,
     ball: DefaultBodyHandle,
+    hover_on: bool,
 }
 
 impl MyGame {
@@ -80,7 +90,7 @@ impl MyGame {
         let rigid_body = RigidBodyDesc::new()
             .translation(Vector2::new(300.0, 300.0))
             // .velocity(Velocity::linear(300.0, -200.0))
-            .linear_damping(0.1)
+            .linear_damping(1.0)
             .build();
 
         let ball = bodies.insert(rigid_body);
@@ -126,13 +136,42 @@ impl MyGame {
             force_generators,
         };
 
-        MyGame { physics, ball }
+        MyGame {
+            physics,
+            ball,
+            hover_on: false,
+        }
+    }
+
+    fn get_ball(&self) -> &RigidBody<f32> {
+        self.physics
+            .bodies
+            .rigid_body(self.ball)
+            .expect("Ball not found")
+    }
+
+    fn get_ball_mut(&mut self) -> &mut RigidBody<f32> {
+        self.physics
+            .bodies
+            .rigid_body_mut(self.ball)
+            .expect("Ball not found")
     }
 }
 
 impl EventHandler for MyGame {
     fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
         // Update code here...
+        if self.hover_on {
+            let hover_force: f32 = -1875.0;
+            let ball_body = self.get_ball_mut();
+            ball_body.apply_force(
+                0,
+                &Force::new(Vector2::new(0.0, hover_force), 0.0),
+                ForceType::Force,
+                true,
+            );
+        }
+
         self.physics.mechanical_world.step(
             &mut self.physics.geometrical_world,
             &mut self.physics.bodies,
@@ -147,11 +186,7 @@ impl EventHandler for MyGame {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, graphics::WHITE);
         // Draw code here...
-        let ball_body = self
-            .physics
-            .bodies
-            .rigid_body(self.ball)
-            .expect("Ball not found");
+        let ball_body = self.get_ball();
         let pos = ball_body.position();
         let translation = pos.translation.vector;
         let circle = graphics::Mesh::new_circle(
@@ -160,7 +195,7 @@ impl EventHandler for MyGame {
             na::Point2::new(translation[0], translation[1]),
             BALL_RAD,
             0.001,
-            BLUE,
+            if self.hover_on { GREEN } else { BLUE },
         )?;
 
         graphics::draw(ctx, &circle, (na::Point2::new(0.0, 0.0),))?;
@@ -175,20 +210,27 @@ impl EventHandler for MyGame {
         _keymods: KeyMods,
         _repeat: bool,
     ) {
-        let impulse: f32 = 100000.0;
-        if let Some(dir) = Direction::from_keycode(keycode) {
-            let ball_body = self
-                .physics
-                .bodies
-                .rigid_body_mut(self.ball)
-                .expect("Ball not found");
-            let force_dir = match dir {
-                Direction::Up => Vector2::new(0.0, -impulse),
-                Direction::Left => Vector2::new(-impulse, 0.0),
-                Direction::Right => Vector2::new(impulse, 0.0),
-            };
-            let force = Force::new(force_dir, 0.0);
-            ball_body.apply_force(0, &force, ForceType::Force, true);
+        let impulse: f32 = 1000.0;
+        let force_up = Vector2::new(0.0, -impulse);
+        let force_left = Vector2::new(-impulse, 0.0);
+        let force_right = Vector2::new(impulse, 0.0);
+
+        if let Some(act) = Action::from_keycode(keycode) {
+            let ball_body = self.get_ball_mut();
+            match act {
+                Action::Up => {
+                    ball_body.apply_force(0, &Force::new(force_up, 0.0), ForceType::Impulse, true);
+                }
+                Action::Left => {
+                    ball_body.apply_force(0, &Force::new(force_left, 0.0), ForceType::Impulse, true);
+                }
+                Action::Right => {
+                    ball_body.apply_force(0, &Force::new(force_right, 0.0), ForceType::Impulse, true);
+                }
+                Action::Hover => {
+                    self.hover_on = !self.hover_on;
+                }
+            }
         }
     }
 }
