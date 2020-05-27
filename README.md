@@ -6,5 +6,6 @@
 - [X] Create a ground for circle to land on
 - [X] Add controls to move the ball around
 - [X] Add some gravity controls for fine-tuning
-- [ ] Create two separate environments. One for top-down. 
-- [ ] Generalize 'floater' with ability to impulse self to get to destination.
+- [X] Create two separate environments. One for top-down. 
+- [X] Generalize 'floater' with ability to impulse self to get to destination.
+- [ ] Use mouse controls just for fun
