@@ -17,8 +17,8 @@ use nphysics2d::object::{
 };
 use nphysics2d::world::{DefaultGeometricalWorld, DefaultMechanicalWorld};
 
-use rand::Rng;
 use rand::rngs::ThreadRng;
+use rand::Rng;
 
 // Constants
 
@@ -75,7 +75,6 @@ fn initialize_walls(bodies: &mut DefaultBodySet<f32>, colliders: &mut DefaultCol
         .build(BodyPartHandle(wall_handle_r, 0));
     colliders.insert(left_wall_co);
     colliders.insert(right_wall_co);
-
 }
 
 fn get_rand_x(rng: &mut ThreadRng) -> f32 {
@@ -152,15 +151,11 @@ impl MyGame {
             let mut new_float = Floater::new(
                 &mut bodies,
                 &mut colliders,
-                Vector2::new(
-                    get_rand_x(&mut rng),
-                    get_rand_y(&mut rng),
-                ),
+                Vector2::new(get_rand_x(&mut rng), get_rand_y(&mut rng)),
             );
             new_float.set_target(Vector2::new(get_rand_x(&mut rng), get_rand_y(&mut rng)));
             floaters.push(new_float);
         }
-
 
         initialize_walls(&mut bodies, &mut colliders);
 
@@ -175,10 +170,7 @@ impl MyGame {
             force_generators,
         };
 
-        MyGame {
-            physics,
-            floaters,
-        }
+        MyGame { physics, floaters }
     }
 
     fn get_floater_body(&self, handle: DefaultBodyHandle) -> &RigidBody<f32> {
@@ -209,7 +201,12 @@ impl EventHandler for MyGame {
         for (handle, target) in floaters_to_force {
             let body = self.get_floater_body_mut(handle);
             let translation = body.position().translation.vector;
-            body.apply_force(0, &Force::new(target - translation, 0.0), ForceType::Force, true);
+            body.apply_force(
+                0,
+                &Force::new(target - translation, 0.0),
+                ForceType::Force,
+                true,
+            );
         }
 
         self.physics.mechanical_world.step(
