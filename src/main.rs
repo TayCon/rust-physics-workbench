@@ -44,6 +44,8 @@ enum Action {
     Left,
     Right,
     Hover,
+    GravityUp,
+    GravityDown,
 }
 
 impl Action {
@@ -53,6 +55,8 @@ impl Action {
             KeyCode::Left => Some(Action::Left),
             KeyCode::Right => Some(Action::Right),
             KeyCode::C => Some(Action::Hover),
+            KeyCode::PageUp => Some(Action::GravityUp),
+            KeyCode::PageDown => Some(Action::GravityDown),
             _ => None,
         }
     }
@@ -90,7 +94,7 @@ impl MyGame {
         let rigid_body = RigidBodyDesc::new()
             .translation(Vector2::new(300.0, 300.0))
             // .velocity(Velocity::linear(300.0, -200.0))
-            .linear_damping(1.0)
+            // .linear_damping(1.0)
             .build();
 
         let ball = bodies.insert(rigid_body);
@@ -230,6 +234,12 @@ impl EventHandler for MyGame {
                 Action::Hover => {
                     self.hover_on = !self.hover_on;
                 }
+                Action::GravityUp => {
+                    self.physics.mechanical_world.gravity += Vector2::new(0.0, 10.0);
+                }
+                Action::GravityDown => {
+                    self.physics.mechanical_world.gravity += Vector2::new(0.0, -10.0);
+                }
             }
         }
     }
@@ -244,6 +254,7 @@ fn main() {
     // Create an instance of your event handler.
     // Usually, you should provide it with the Context object to
     // use when setting your game up.
+    println!("Hi");
     let mut my_game = MyGame::new(&mut ctx);
 
     // Run!
