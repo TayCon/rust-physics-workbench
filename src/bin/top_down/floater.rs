@@ -1,6 +1,7 @@
 use ggez::graphics::Color;
 use nalgebra::Vector2;
 use nphysics2d::object::DefaultBodyHandle;
+use uuid::Uuid;
 
 const BLUE: Color = Color {
     r: 0.01,
@@ -18,14 +19,16 @@ const BLUE: Color = Color {
 // };
 
 pub struct Floater {
+    id: Uuid,
     handle: DefaultBodyHandle,
     pub target: Option<Vector2<f32>>,
     pub color: Color,
 }
 
 impl Floater {
-    pub fn new(handle: DefaultBodyHandle) -> Self {
+    pub fn new(handle: DefaultBodyHandle, size: f32) -> Self {
         Floater {
+            id: Uuid::new_v4(),
             handle,
             target: None,
             color: BLUE,
@@ -39,4 +42,6 @@ impl Floater {
     pub fn get_handle(&self) -> DefaultBodyHandle {
         self.handle
     }
-}
+  
+} 
+

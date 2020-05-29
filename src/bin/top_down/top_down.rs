@@ -1,16 +1,20 @@
 mod physics;
-use physics::PhysicsStruct;
-
 mod floater;
+
+use physics::PhysicsStruct;
 use floater::Floater;
 
 use ggez::event::{self, EventHandler};
 use ggez::nalgebra as na;
 use ggez::{graphics, Context, ContextBuilder, GameResult};
+use ggez::input::mouse::MouseButton;
 
 use nalgebra::Vector2;
 
 use rand::Rng;
+
+use std::collections::HashSet;
+use uuid::Uuid;
 
 // Constants
 const BALL_RAD: f32 = 10.0;
@@ -24,6 +28,7 @@ const FLOATER_CNT: u32 = 15;
 struct MyGame {
     physics: PhysicsStruct,
     floaters: Vec<Floater>,
+    selected: HashSet<Uuid>
 }
 
 impl MyGame {
@@ -45,7 +50,8 @@ impl MyGame {
             floaters.push(new_float);
         }
 
-        MyGame { physics, floaters }
+        let selected = HashSet::new();
+        MyGame { physics, floaters, selected}
     }
 }
 
@@ -88,6 +94,19 @@ impl EventHandler for MyGame {
 
         graphics::present(ctx)
     }
+
+    fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+        match button {
+            MouseButton::Left => {
+                
+            },
+            MouseButton::Right => {
+
+            },
+            _ => ()
+        }
+    }
+
 }
 
 fn main() {
