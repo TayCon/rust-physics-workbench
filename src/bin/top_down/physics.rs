@@ -49,7 +49,12 @@ impl PhysicsStruct {
         );
     }
 
-    pub fn create_ball(&mut self, radius: f32, start_pos: Vector2<f32>) -> DefaultBodyHandle {
+    pub fn create_ball(
+        &mut self,
+        radius: f32,
+        start_pos: Vector2<f32>,
+        density: f32,
+    ) -> DefaultBodyHandle {
         let ball_shape = ShapeHandle::new(Ball::new(radius));
         let rigid_body = RigidBodyDesc::new()
             .translation(start_pos)
@@ -58,7 +63,7 @@ impl PhysicsStruct {
 
         let ball = self.bodies.insert(rigid_body);
         let co = ColliderDesc::new(ball_shape.clone())
-            .density(0.01)
+            .density(density)
             .build(BodyPartHandle(ball, 0));
         self.colliders.insert(co);
 
@@ -80,6 +85,23 @@ impl PhysicsStruct {
             .expect("Object not found");
 
         body.position().translation.vector
+    }
+
+    pub fn floater_contains(
+        &self,
+        object_handle: DefaultBodyHandle,
+        radius: f32,
+        query: Vector2<f32>,
+    ) -> bool {
+        let body = self
+            .bodies
+            .rigid_body(object_handle)
+            .expect("Object not found");
+
+        let pos = body.position().translation.vector;
+        let diff = query - pos;
+
+        diff.norm() < radius
     }
 
     fn initialize_walls(

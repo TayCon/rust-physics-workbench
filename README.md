@@ -8,4 +8,5 @@
 - [X] Add some gravity controls for fine-tuning
 - [X] Create two separate environments. One for top-down. 
 - [X] Generalize 'floater' with ability to impulse self to get to destination.
-- [ ] Use mouse controls just for fun
+- [X] Use mouse controls just for fun
+- [X] Add a beach ball for the floaters to push
