@@ -8,6 +8,7 @@ use ggez::event::{self, EventHandler};
 use ggez::input::mouse::MouseButton;
 use ggez::nalgebra as na;
 use ggez::{graphics, Context, ContextBuilder, GameResult};
+use ggez::mint::Point2;
 
 use nalgebra::Vector2;
 use nphysics2d::object::DefaultBodyHandle;
@@ -21,6 +22,7 @@ const WIN_WIDTH: f32 = 800.0;
 const WIN_HEIGHT: f32 = 600.0;
 const TOLERANCE: f32 = 0.001;
 const FLOATER_CNT: u32 = 15;
+const LINE_COLOR: graphics::Color = graphics::Color::new(0.99, 0.1, 0.99, 0.8);
 
 // Structures & enums
 
@@ -95,22 +97,29 @@ impl EventHandler for MyGame {
 
         // Draw code here...
         for floater in self.floaters.iter() {
+            let pos = self.physics.get_pos_of(floater.get_handle());
             draw_physics_ball(
                 ctx,
                 Floater::size(),
-                self.physics.get_pos_of(floater.get_handle()),
+                &pos,
                 if self.selected.contains(&floater.get_handle()) {
                     floater::GREEN
                 } else {
                     Floater::color()
                 },
             )?;
+
+            if let Some(target) = floater.target {
+                let points = [Point2{x: pos[0], y: pos[1]}, Point2{x: target[0], y: target[1]}];
+                let line_to_target = graphics::Mesh::new_line(ctx, &points, 2.0, LINE_COLOR)?;
+                graphics::draw(ctx, &line_to_target, (na::Point2::new(0.0, 0.0),))?;
+            }
         }
 
         draw_physics_ball(
             ctx,
             BeachBall::size(),
-            self.physics.get_pos_of(self.beach_ball.get_handle()),
+            &self.physics.get_pos_of(self.beach_ball.get_handle()),
             BeachBall::color(),
         )?;
 
@@ -147,7 +156,7 @@ impl EventHandler for MyGame {
 fn draw_physics_ball(
     ctx: &mut Context,
     size: f32,
-    translation: Vector2<f32>,
+    translation: &Vector2<f32>,
     color: graphics::Color,
 ) -> GameResult<()> {
     let circle = graphics::Mesh::new_circle(
